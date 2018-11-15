@@ -1,0 +1,15 @@
+{
+  "name": "purescript-aff",
+  "set": "master",
+  "source": "file:///home/felix/projects/pure-c/package-sets",
+  "depends": [
+    "prelude",
+    "partial",
+    "tailrec",
+    "bifunctors",
+    "functions",
+    "transformers",
+    "unsafe-coerce",
+    "effect"
+  ]
+}
