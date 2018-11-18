@@ -3,13 +3,15 @@
   "set": "master",
   "source": "file:///home/felix/projects/pure-c/package-sets",
   "depends": [
-    "prelude",
-    "partial",
-    "tailrec",
+    "assert",
     "bifunctors",
+    "effect",
     "functions",
+    "partial",
+    "prelude",
+    "tailrec",
     "transformers",
     "unsafe-coerce",
-    "effect"
+    "uv"
   ]
 }

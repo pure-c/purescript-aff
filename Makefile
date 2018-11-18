@@ -7,4 +7,8 @@ endif
 
 include $(PUREC_DIR)/mk/target.mk
 
+LD_FLAGS += -luv
 $(eval $(call purs_mk_target,main,Test.Main,src test,))
+
+check:
+	@./main.out

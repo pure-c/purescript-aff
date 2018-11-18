@@ -3,6 +3,12 @@
 #define TO_FOREIGN(V) purs_any_foreign_new(NULL, (void*) V)
 #define FROM_FOREIGN(V) purs_any_get_foreign(V)->data
 
+#ifdef AFF_DEBUG
+#define AFF_PRINTF(f_, ...) printf((f_), ##__VA_ARGS__)
+#else
+#define AFF_PRINTF(f_, ...)
+#endif // AFF_DEBUG
+
 #define DO_RETHROW   1
 #define DONT_RETHROW 0
 
@@ -522,8 +528,8 @@ PURS_FFI_FUNC_2(join_canceler, _entry, _, {
 
 PURS_FFI_FUNC_2(onComplete, _join, _, {
 	const join_t * join = FROM_FOREIGN(_join);
-	printf("onComplete: join->fiber->state: %s\n",
-	       fiber_state_str_lookup[join->fiber->state]);
+	AFF_PRINTF("onComplete: join->fiber->state: %s\n",
+		   fiber_state_str_lookup[join->fiber->state]);
 	if (join->fiber->state == FIBER_STATE_COMPLETED) {
 		join->fiber->rethrow = join->fiber->rethrow && join->rethrow;
 		assert(join->fiber->step->tag == STEP_TAG_VAL);
@@ -542,7 +548,7 @@ PURS_FFI_FUNC_2(onComplete, _join, _, {
 
 PURS_FFI_FUNC_3(Effect_Aff__joinFiber, _fiber, cb, _, {
 	fiber_t * fiber = FROM_FOREIGN(_fiber);
-	printf("joinFiber: fiber->state: %s\n", fiber_state_str_lookup[fiber->state]);
+	AFF_PRINTF("joinFiber: fiber->state: %s\n", fiber_state_str_lookup[fiber->state]);
 	const purs_any_t * canceler =
 		app_2(onComplete,
 		      TO_FOREIGN(join_new(fiber, cb, DONT_RETHROW)),
@@ -632,7 +638,7 @@ PURS_FFI_FUNC_4(onCompletedCheckRethrow, _fiber, _error, _reCheck, _, {
  */
 void fiber_run(fiber_t * fiber, uint32_t local_run_tick) {
 	while (1) {
-		printf("fiber->state: %s\n", fiber_state_str_lookup[fiber->state]);
+		AFF_PRINTF("fiber->state: %s\n", fiber_state_str_lookup[fiber->state]);
 		switch (fiber->state) {
 
 		case FIBER_STATE_STEP_BIND: {
@@ -683,13 +689,13 @@ void fiber_run(fiber_t * fiber, uint32_t local_run_tick) {
 
 		case FIBER_STATE_CONTINUE: {
 			assert(fiber->step != NULL);
-			printf("fiber->step->tag: %s\n",
-			       step_tag_str_lookup[fiber->step->tag]);
+			AFF_PRINTF("fiber->step->tag: %s\n",
+				   step_tag_str_lookup[fiber->step->tag]);
 			switch (fiber->step->tag) {
 			case STEP_TAG_AFF: {
-				printf("fiber->step->aff: %p\n", fiber->step->aff);
-				printf("fiber->step->aff->tag: %s\n",
-				       aff_tag_str_lookup[fiber->step->aff->tag]);
+				AFF_PRINTF("fiber->step->aff: %p\n", fiber->step->aff);
+				AFF_PRINTF("fiber->step->aff->tag: %s\n",
+					   aff_tag_str_lookup[fiber->step->aff->tag]);
 				switch (fiber->step->aff->tag) {
 				case AFF_TAG_BIND: {
 					if (fiber->bhead != NULL) {
@@ -744,7 +750,7 @@ void fiber_run(fiber_t * fiber, uint32_t local_run_tick) {
 				   error handler later on in case of an
 				   exception. */
 				case AFF_TAG_CATCH: {
-					printf("fiber->bhead: %p\n", fiber->bhead);
+					AFF_PRINTF("fiber->bhead: %p\n", fiber->bhead);
 					if (fiber->bhead == NULL) {
 						fiber->attempts =
 							aff_cons_new(
@@ -833,7 +839,7 @@ void fiber_run(fiber_t * fiber, uint32_t local_run_tick) {
 			   other stacks to resume or finalizers to run, the
 			   fiber has halted and we can invoke all join
 			   callbacks. Otherwise we need to resume. */
-			printf ("fiber->attempts: %p\n", fiber->attempts);
+			AFF_PRINTF("fiber->attempts: %p\n", fiber->attempts);
 			if (fiber->attempts == NULL) {
 				fiber->state = FIBER_STATE_COMPLETED;
 				fiber->step =
@@ -848,8 +854,8 @@ void fiber_run(fiber_t * fiber, uint32_t local_run_tick) {
 				const purs_any_t * tmp = fiber->attempts->cons.value2;
 				fiber->attempts = fiber->attempts->cons.value1;
 
-				printf("attempt->tag: %s\n",
-				       aff_tag_str_lookup[attempt->tag]);
+				AFF_PRINTF("attempt->tag: %s\n",
+					   aff_tag_str_lookup[attempt->tag]);
 				switch (attempt->tag) {
 				case AFF_TAG_CATCH:
 					if (fiber->interrupt && fiber->interrupt != tmp) {
@@ -1001,11 +1007,11 @@ void fiber_run(fiber_t * fiber, uint32_t local_run_tick) {
 			/* If we have an interrupt and a fail, then the thread
 			   threw while running finalizers. This is irrecoverable
 			   */
-			printf("interrupt:%p/failure:%p/rethrow:%i/is-left:%i\n",
-			       fiber->interrupt,
-			       fiber->failure,
-			       fiber->rethrow,
-			       utils_is_left(fiber->utils, fiber->step->val));
+			AFF_PRINTF("interrupt:%p/failure:%p/rethrow:%i/is-left:%i\n",
+				   fiber->interrupt,
+				   fiber->failure,
+				   fiber->rethrow,
+				   utils_is_left(fiber->utils, fiber->step->val));
 
 			if (fiber->interrupt != NULL && fiber->failure != NULL) {
 				app_3(fiber->set_timeout,
