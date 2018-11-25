@@ -1,7 +1,7 @@
 {
   "name": "purescript-aff",
   "set": "master",
-  "source": "file:///home/felix/projects/pure-c/package-sets",
+  "source": "https://github.com/pure-c/package-sets",
   "depends": [
     "assert",
     "bifunctors",
